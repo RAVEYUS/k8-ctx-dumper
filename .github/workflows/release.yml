@@ -98,6 +98,14 @@ jobs:
             type=semver,pattern={{version}}
             type=raw,value=latest,enable=${{ startsWith(github.ref_name, 'v') && !contains(github.ref_name, '-') }}
 
+      # Strip the leading "v" from the tag (v0.1.0 -> 0.1.0) so the version
+      # stamped into the binary via build-args matches the GitHub Release.
+      - name: Compute bare version
+        id: version
+        run: |
+          ref="${GITHUB_REF_NAME#v}"
+          echo "bare=${ref}" >> "$GITHUB_OUTPUT"
+
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
@@ -107,6 +115,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            VERSION=${GITHUB_REF_NAME#v}
+            VERSION=${{ steps.version.outputs.bare }}
             COMMIT=${{ github.sha }}
-            BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
