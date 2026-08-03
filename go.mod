@@ -4,7 +4,7 @@ go 1.26.2
 
 require (
 	github.com/atotto/clipboard v0.1.4
-	github.com/spf13/cobra v1.8.1
+	github.com/spf13/cobra v1.10.2
 	k8s.io/api v0.36.3
 	k8s.io/apimachinery v0.36.3
 	k8s.io/client-go v0.36.3
