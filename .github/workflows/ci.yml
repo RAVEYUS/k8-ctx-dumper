@@ -65,10 +65,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target:
-          - FuzzParseResources
-          - FuzzSanitize
-          - FuzzMarkdownFormat
+        include:
+          - package: ./pkg/k8s
+            target: FuzzParseResources
+          - package: ./pkg/sanitizer
+            target: FuzzSanitize
+          - package: ./pkg/formatter
+            target: FuzzMarkdownFormat
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -81,7 +84,7 @@ jobs:
 
       - name: Run fuzz target (${{ matrix.target }})
         run: |
-          go test ./... -run '^$' -fuzz '${{ matrix.target }}' -fuzztime 30s
+          go test ${{ matrix.package }} -run '^$' -fuzz '${{ matrix.target }}' -fuzztime 30s
   build:
     name: Build (Go ${{ matrix.go }})
     runs-on: ubuntu-latest
