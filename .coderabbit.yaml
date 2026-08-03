@@ -1,0 +1,38 @@
+# CodeRabbit AI code review configuration.
+# Docs: https://docs.coderabbit.ai/reference/configuration
+language: "en-US"
+
+# Free tier is on by default; set explicitly for clarity.
+enable_free_tier: true
+
+reviews:
+  # Balanced review depth: catches real bugs without being nitpicky.
+  profile: "chill"
+  # Post a high-level summary of each PR to the description/walkthrough.
+  high_level_summary: true
+  # Don't auto-approve when comments are resolved; humans stay in the loop.
+  request_changes_workflow: false
+  # Keep walkthrough focused on substance.
+  sequence_diagrams: false
+  poem: false
+  review_status: true
+
+  auto_review:
+    enabled: true
+    # Re-review on each new push to the PR branch.
+    auto_incremental_review: true
+    drafts: false
+
+  # Go-specific tooling CodeRabbit can surface during reviews.
+  tools:
+    golangci-lint:
+      enabled: true
+    gitleaks:
+      enabled: true
+    actionlint:
+      enabled: true
+    zizmor:
+      enabled: true
+
+chat:
+  auto_reply: true

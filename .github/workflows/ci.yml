@@ -1,6 +1,9 @@
 # CI: run on every push to any branch and on pull requests. Mirrors the local
 # quality gate (build + vet + gofmt + tests) and adds race detection so data
 # races in the concurrent fetch path are caught early.
+#
+# The Go matrix tracks the module's `go` directive (1.26.2 in go.mod); older
+# toolchains can't build it because setup-go sets GOTOOLCHAIN=local.
 name: CI
 
 on:
@@ -20,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go: ["1.22", "1.23", "1.24", "1.25", "1.26"]
+        go: ["1.26"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -51,7 +54,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go: ["1.22", "1.26"]
+        go: ["1.26"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4

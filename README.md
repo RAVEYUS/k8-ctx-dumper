@@ -1,6 +1,10 @@
 # k8s-ctx-dumper
 
-[![CI](https://github.com/RAVEYUS/k8-ctx-dumper/actions/workflows/ci.yml/badge.svg)](https://github.com/RAVEYUS/k8-ctx-dumper/actions/workflows/ci.yml)
+[![Go Version](https://img.shields.io/badge/go-1.26-00ADD8?logo=go&logoColor=white)](https://go.dev/dl/)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
+[![CI Build Passing](https://github.com/RAVEYUS/k8-ctx-dumper/actions/workflows/ci.yml/badge.svg)](https://github.com/RAVEYUS/k8-ctx-dumper/actions/workflows/ci.yml)
+[![CodeRabbit Reviews](https://img.shields.io/badge/CodeRabbit-AI%20Reviews-800080?logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMzIgMkMyIDE2IDMgMzkgMjIgNTRjMTkgMTUgNDAgLTggNDAgLTI4QzYyIDggNDYgMiAzMiAyeiIvPjwvc3ZnPg==)](https://www.coderabbit.ai/)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/RAVEYUS/k8-ctx-dumper/badge)](https://securityscorecards.dev/viewer/?uri=github.com/RAVEYUS/k8-ctx-dumper)
 
 A lightweight, high-performance Go CLI that queries Kubernetes clusters via
 client-go, extracts active cluster state (Pods, Services, Deployments, Events),
@@ -111,8 +115,13 @@ Apache License 2.0
 
 ## Development & CI
 
+- **AI reviews**: [CodeRabbit](https://www.coderabbit.ai/) (free tier) reviews
+  every pull request with inline comments, a summary, and Go tooling
+  (golangci-lint, gitleaks, actionlint, zizmor).
 - CI runs on every push/PR: `gofmt`, `go vet`, `go test -race`, and a
-  version-stamped build across Go 1.22–1.26.
+  version-stamped build on Go 1.26.
+- [OpenSSF Scorecard](https://securityscorecards.dev/) runs weekly to assess
+  supply-chain security; results are published to the security dashboard.
 - Tag a release with `git tag v1.0.0 && git push origin v1.0.0` to trigger the
   release workflow, which cross-compiles the binary for Linux, macOS, and
   Windows (amd64/arm64) and attaches them to a draft GitHub Release.
