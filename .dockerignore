@@ -1,0 +1,12 @@
+# Keep the image build context small and avoid leaking local state.
+.git
+.gitignore
+.commandcode
+*.md
+Dockerfile
+docker-compose.yml
+.github
+k8s-ctx-dumper
+dist
+LICENSE
+SECURITY.md

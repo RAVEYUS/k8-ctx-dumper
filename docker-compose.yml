@@ -1,0 +1,10 @@
+# Example Compose service for the Docker image. The kubeconfig is mounted
+# read-only; HOME is set so client-go's default config lookup works.
+services:
+  k8s-ctx-dumper:
+    image: raveyus/k8s-ctx-dumper:latest
+    environment:
+      - HOME=/root
+    volumes:
+      - ~/.kube:/root/.kube:ro
+    command: ["dump", "-n", "default"]

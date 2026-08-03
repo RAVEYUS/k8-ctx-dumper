@@ -30,6 +30,26 @@ go install k8s-ctx-dumper@latest
 go build -o k8s-ctx-dumper .
 ```
 
+### Docker
+
+Pre-built multi-arch images (linux/amd64, linux/arm64) are published to
+[Docker Hub](https://hub.docker.com/) on every version tag. Mount your
+kubeconfig read-only to use it:
+
+```bash
+docker run --rm -v ~/.kube:/root/.kube:ro \
+  raveyus/k8s-ctx-dumper:latest dump -n default
+```
+
+Or with docker compose:
+
+```bash
+docker compose up --build
+```
+
+> **Note:** the image runs as a non-root user and has no shell; `--copy`
+> (clipboard) is unavailable inside a container.
+
 Build metadata can be embedded at build time:
 
 ```bash
@@ -124,5 +144,9 @@ Apache License 2.0
   supply-chain security; results are published to the security dashboard.
 - Tag a release with `git tag v1.0.0 && git push origin v1.0.0` to trigger the
   release workflow, which cross-compiles the binary for Linux, macOS, and
-  Windows (amd64/arm64) and attaches them to a draft GitHub Release.
+  Windows (amd64/arm64), attaches them to a draft GitHub Release, **and
+  publishes a multi-arch Docker image to Docker Hub**.
+- Docker Hub publishing requires the `DOCKERHUB_USERNAME` and
+  `DOCKERHUB_TOKEN` repository secrets to be configured in
+  [repo settings](https://github.com/RAVEYUS/k8-ctx-dumper/settings/secrets/actions).
 - Dependabot keeps Go modules and GitHub Actions up to date weekly.
