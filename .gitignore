@@ -1,0 +1,17 @@
+# Build artifacts
+/k8s-ctx-dumper
+/dist/
+*.exe
+
+# Test / coverage output
+coverage.out
+*.cover
+
+# Local editor/OS cruft
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Command Code tool config
+/.commandcode/
