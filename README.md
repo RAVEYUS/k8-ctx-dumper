@@ -1,5 +1,7 @@
 # k8s-ctx-dumper
 
+[![CI](https://github.com/RAVEYUS/k8-ctx-dumper/actions/workflows/ci.yml/badge.svg)](https://github.com/RAVEYUS/k8-ctx-dumper/actions/workflows/ci.yml)
+
 A lightweight, high-performance Go CLI that queries Kubernetes clusters via
 client-go, extracts active cluster state (Pods, Services, Deployments, Events),
 strips API noise (`managedFields`, timestamps, low-value annotations), and
@@ -106,3 +108,12 @@ k8s-ctx-dumper/
 ## License
 
 Apache License 2.0
+
+## Development & CI
+
+- CI runs on every push/PR: `gofmt`, `go vet`, `go test -race`, and a
+  version-stamped build across Go 1.22–1.26.
+- Tag a release with `git tag v1.0.0 && git push origin v1.0.0` to trigger the
+  release workflow, which cross-compiles the binary for Linux, macOS, and
+  Windows (amd64/arm64) and attaches them to a draft GitHub Release.
+- Dependabot keeps Go modules and GitHub Actions up to date weekly.

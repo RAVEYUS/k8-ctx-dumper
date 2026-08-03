@@ -1,0 +1,73 @@
+# CI: run on every push to any branch and on pull requests. Mirrors the local
+# quality gate (build + vet + gofmt + tests) and adds race detection so data
+# races in the concurrent fetch path are caught early.
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test (Go ${{ matrix.go }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go: ["1.22", "1.23", "1.24", "1.25", "1.26"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go }}
+          cache: true
+
+      - name: gofmt check
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "The following files are not gofmt-formatted:" >&2
+            echo "$unformatted" >&2
+            exit 1
+          fi
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: Test
+        run: go test -race -count=1 ./...
+  build:
+    name: Build (Go ${{ matrix.go }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go: ["1.22", "1.26"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go }}
+          cache: true
+
+      - name: Build with ldflags
+        run: |
+          go build -trimpath \
+            -ldflags "-X k8s-ctx-dumper/cmd.version=${{ github.ref_name }} \
+                      -X k8s-ctx-dumper/cmd.commit=${{ github.sha }} \
+                      -X k8s-ctx-dumper/cmd.date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            -o k8s-ctx-dumper .
+      - name: Smoke test binary
+        run: ./k8s-ctx-dumper version
