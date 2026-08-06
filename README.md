@@ -38,7 +38,7 @@ kubeconfig read-only to use it:
 
 ```bash
 docker run --rm -v ~/.kube:/root/.kube:ro \
-  raveyus/k8s-ctx-dumper:latest dump -n default
+  debayan581/k8s-ctx-dumper:latest dump -n default
 ```
 
 Or with docker compose:

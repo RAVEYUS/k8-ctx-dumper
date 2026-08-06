@@ -2,7 +2,7 @@
 # read-only; HOME is set so client-go's default config lookup works.
 services:
   k8s-ctx-dumper:
-    image: raveyus/k8s-ctx-dumper:latest
+    image: debayan581/k8s-ctx-dumper:latest
     environment:
       - HOME=/root
     volumes:
