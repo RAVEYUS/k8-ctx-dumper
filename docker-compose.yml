@@ -1,10 +1,14 @@
-# Example Compose service for the Docker image. The kubeconfig is mounted
-# read-only; HOME is set so client-go's default config lookup works.
+# Example Compose service for the Docker image.
+#
+# The distroless nonroot image runs as UID 65532, so the host kubeconfig
+# cannot be mounted at /root/.kube (host ~/.kube is typically 0700 and not
+# readable by UID 65532). Instead we mount it under the nonroot user's home
+# and point KUBECONFIG at it explicitly.
 services:
   k8s-ctx-dumper:
     image: debayan581/k8s-ctx-dumper:latest
     environment:
-      - HOME=/root
+      - KUBECONFIG=/home/nonroot/.kube/config
     volumes:
-      - ~/.kube:/root/.kube:ro
+      - ~/.kube/config:/home/nonroot/.kube/config:ro
     command: ["dump", "-n", "default"]

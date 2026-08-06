@@ -114,8 +114,6 @@ func sanitizeAnnotations(in map[string]string) map[string]string {
 			out["ingress-class"] = v
 		case k == "kubernetes.io/change-cause":
 			out["change-cause"] = v
-		case k == "deployment.kubernetes.io/revision":
-			out["revision"] = v
 		case k == "kubectl.kubernetes.io/default-container":
 			out["default-container"] = v
 		case strings.HasPrefix(k, "checksum/"):

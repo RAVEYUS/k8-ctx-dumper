@@ -11,7 +11,7 @@
 4. [Module: `main.go`](#4-module-maingo)
 5. [Package: `cmd/`](#5-package-cmd)
    - [5.1 `cmd/root.go`](#51-cmdrootgo)
-   - [5.2 `cmd/dump.go`](#51-cmddumpgo)
+   - [5.2 `cmd/dump.go`](#52-cmddumpgo)
    - [5.3 `cmd/version.go`](#53-cmdversiongo)
 6. [Package: `pkg/k8s/`](#6-package-pkgk8s)
    - [6.1 `pkg/k8s/client.go`](#61-pkgk8sclientgo)
@@ -58,7 +58,7 @@ Markdown or JSON** — purpose-built for LLM context windows.
 
 ## 2. Repository Layout
 
-```
+```text
 k8s-ctx-dumper/
 ├── main.go                          # Entrypoint → cmd.Execute()
 ├── go.mod / go.sum                  # Go module definition & checksums
@@ -103,7 +103,7 @@ k8s-ctx-dumper/
 
 ## 3. Dependency Graph
 
-```
+```text
 main.go
   └── cmd (package)
         ├── root.go    → defines rootCmd, persistent flags
@@ -390,7 +390,7 @@ deployments.
 | Action | Keys |
 | --- | --- |
 | **Drop** (noise) | `kubectl.kubernetes.io/last-applied-configuration`, `deployment.kubernetes.io/revision`, `kubernetes.io/config.seen`, `kubernetes.io/config.hash`, `kubernetes.io/config.mirror`, `pv.kubernetes.io/bind-completed`, `volume.kubernetes.io/selected-node` |
-| **Alias** | `kubernetes.io/service-account.name` → `serviceaccount`, `kubernetes.io/ingress.class` → `ingress-class`, `kubernetes.io/change-cause` → `change-cause`, `deployment.kubernetes.io/revision` → `revision`, `kubectl.kubernetes.io/default-container` → `default-container` |
+| **Alias** | `kubernetes.io/service-account.name` → `serviceaccount`, `kubernetes.io/ingress.class` → `ingress-class`, `kubernetes.io/change-cause` → `change-cause`, `kubectl.kubernetes.io/default-container` → `default-container` |
 | **Keep** | `checksum/*` (Helm ConfigMap/Secret pins), `helm.sh/*` (Helm release bookkeeping) |
 | **Drop** (unknown) | Any annotation not matching the above |
 
@@ -470,7 +470,7 @@ Markdown pipe tables.
 
 **Event rendering format:**
 
-```
+```text
 - [Warning] BackOff (12x, 10m ago): Back-off restarting failed container on Pod pay-98ab
 ```
 
@@ -596,8 +596,21 @@ Uses `step-security/harden-runner@v2` with `egress-policy: audit` and
 
 ### `docker-compose.yml`
 
-Example service mounting `~/.kube` read-only with `HOME=/root` so client-go's
-default config lookup works.
+Example service that makes the kubeconfig readable by the image's nonroot
+user (UID 65532). The distroless image cannot read the host `~/.kube`
+directory (typically `0700`), so the compose file mounts the kubeconfig
+*file* at `/home/nonroot/.kube/config` and sets `KUBECONFIG` explicitly:
+
+```yaml
+services:
+  k8s-ctx-dumper:
+    image: debayan581/k8s-ctx-dumper:latest
+    environment:
+      - KUBECONFIG=/home/nonroot/.kube/config
+    volumes:
+      - ~/.kube/config:/home/nonroot/.kube/config:ro
+    command: ["dump", "-n", "default"]
+```
 
 ### `.dockerignore`
 
@@ -661,13 +674,14 @@ FROM golang:1.26@sha256:3aff6657219a4d9c14e27fb1d8976c49c29fddb70ba835014f477e1c
 
 ## 14. Data Flow: End-to-End
 
-```
-User runs: k8s-ctx-dumper dump -n default --format markdown
+```text
+# Example with all four resources (default is pods,services,deployments only)
+User runs: k8s-ctx-dumper dump -n default --resources pods,services,deployments,events
                     │
                     ▼
 ┌─────────────────────────────────────────────────────────┐
 │ 1. cmd/dump.go: runDump()                               │
-│    ParseResources("pods,services,deployments")           │
+│    ParseResources("pods,services,deployments,events")    │
 │    namespace = "default"                                 │
 └─────────────────────────────────────────────────────────┘
                     │

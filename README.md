@@ -33,22 +33,26 @@ go build -o k8s-ctx-dumper .
 ### Docker
 
 Pre-built multi-arch images (linux/amd64, linux/arm64) are published to
-[Docker Hub](https://hub.docker.com/) on every version tag. Mount your
-kubeconfig read-only to use it:
+[Docker Hub](https://hub.docker.com/) on every version tag.
+
+> **Note:** the image runs as the distroless **nonroot** user (UID 65532) and
+> has no shell. The host `~/.kube` directory is typically `0700` and **not
+> readable by UID 65532**, so mount the kubeconfig file itself at a readable
+> path and set `KUBECONFIG`. `--copy` (clipboard) is unavailable in a
+> container.
 
 ```bash
-docker run --rm -v ~/.kube:/root/.kube:ro \
+docker run --rm \
+  -e KUBECONFIG=/home/nonroot/.kube/config \
+  -v ~/.kube/config:/home/nonroot/.kube/config:ro \
   debayan581/k8s-ctx-dumper:latest dump -n default
 ```
 
-Or with docker compose:
+Or with docker compose (see `docker-compose.yml`):
 
 ```bash
-docker compose up --build
+docker compose up
 ```
-
-> **Note:** the image runs as a non-root user and has no shell; `--copy`
-> (clipboard) is unavailable inside a container.
 
 Build metadata can be embedded at build time:
 
