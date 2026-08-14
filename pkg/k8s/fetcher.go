@@ -2,6 +2,7 @@ package k8s
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -25,14 +26,6 @@ const (
 	ResourceDeployments ResourceKind = "deployments"
 	ResourceEvents      ResourceKind = "events"
 )
-
-// AllResources is the default resource set, in a stable display order.
-var AllResources = []ResourceKind{
-	ResourcePods,
-	ResourceServices,
-	ResourceDeployments,
-	ResourceEvents,
-}
 
 // ParseResources converts a comma-separated flag value (e.g. "pods,services")
 // into a de-duplicated, stable-ordered list of ResourceKind values. Unknown
@@ -91,15 +84,6 @@ type ClusterSnapshot struct {
 	// Events are kept verbatim (count, reason, message) so the formatter can
 	// decide how much detail to surface; only the list is trimmed.
 	Events []corev1.Event
-}
-
-// EventNamespace is a helper for formatters that bucket events by the
-// namespace of their involved object.
-func (s *ClusterSnapshot) EventNamespace(e corev1.Event) string {
-	if ns := e.InvolvedObject.Namespace; ns != "" {
-		return ns
-	}
-	return s.Namespace
 }
 
 // Fetcher queries the cluster for the requested resources. Fetch is
@@ -192,7 +176,15 @@ func (f *Fetcher) Fetch(ctx context.Context) (*ClusterSnapshot, error) {
 	wg.Wait()
 	close(errCh)
 
-	if err := <-errCh; err != nil {
+	// Collect every goroutine's error (a resource failing to list should not
+	// hide failures elsewhere), then join them into one diagnostic.
+	var errs []error
+	for err := range errCh {
+		if err != nil {
+			errs = append(errs, err)
+		}
+	}
+	if err := errors.Join(errs...); err != nil {
 		return nil, err
 	}
 
@@ -219,37 +211,43 @@ func (f *Fetcher) Fetch(ctx context.Context) (*ClusterSnapshot, error) {
 
 // fetchEvents prefers the events.k8s.io/v1 API (richer metadata, no TTL-based
 // pruning) and falls back to the core/v1 Events when the former is unavailable
-// (very old clusters). Both sources are normalized to corev1.Event so the rest
-// of the pipeline stays source-agnostic.
+// (very old clusters, or no rest.Config to build the typed client from). Both
+// sources are normalized to corev1.Event so the rest of the pipeline stays
+// source-agnostic.
 func (f *Fetcher) fetchEvents(ctx context.Context) ([]corev1.Event, error) {
 	// Try the events API group first: it is the recommended, more complete
 	// source. core/v1 events are the compatibility fallback.
 	var v1Err error
-	typed, err := typedeventsv1.NewForConfig(f.restCfg)
-	if err == nil {
-		var evList *eventsv1.EventList
-		if f.namespace == "" {
-			evList, err = typed.Events(metav1.NamespaceAll).List(ctx, metav1.ListOptions{})
-		} else {
-			evList, err = typed.Events(f.namespace).List(ctx, metav1.ListOptions{})
-		}
+	if f.restCfg != nil {
+		typed, err := typedeventsv1.NewForConfig(f.restCfg)
 		if err == nil {
-			return convertEventsV1(evList.Items), nil
+			var evList *eventsv1.EventList
+			if f.namespace == "" {
+				evList, err = typed.Events(metav1.NamespaceAll).List(ctx, metav1.ListOptions{})
+			} else {
+				evList, err = typed.Events(f.namespace).List(ctx, metav1.ListOptions{})
+			}
+			if err == nil {
+				return convertEventsV1(evList.Items), nil
+			}
+			v1Err = err
 		}
-		v1Err = err
 	}
 
 	// Fall back to core/v1 events (available on every cluster).
-	var coreList *corev1.EventList
+	var (
+		coreList *corev1.EventList
+		coreErr  error
+	)
 	if f.namespace == "" {
-		coreList, err = f.client.CoreV1().Events(metav1.NamespaceAll).List(ctx, metav1.ListOptions{})
+		coreList, coreErr = f.client.CoreV1().Events(metav1.NamespaceAll).List(ctx, metav1.ListOptions{})
 	} else {
-		coreList, err = f.client.CoreV1().Events(f.namespace).List(ctx, metav1.ListOptions{})
+		coreList, coreErr = f.client.CoreV1().Events(f.namespace).List(ctx, metav1.ListOptions{})
 	}
-	if err == nil {
+	if coreErr == nil {
 		return coreList.Items, nil
 	}
-	return nil, fmt.Errorf("events.k8s.io/v1 (%v) and core/v1 events (%v) both failed", v1Err, err)
+	return nil, fmt.Errorf("events.k8s.io/v1 (%v) and core/v1 events (%v) both failed", v1Err, coreErr)
 }
 
 // convertEventsV1 normalizes events.k8s.io/v1 events into corev1.Event so the
