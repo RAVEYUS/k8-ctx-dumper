@@ -3,7 +3,9 @@
 # races in the concurrent fetch path are caught early.
 #
 # The Go matrix tracks the module's `go` directive (1.26.2 in go.mod); older
-# toolchains can't build it because setup-go sets GOTOOLCHAIN=local.
+# toolchains can't build it because setup-go sets GOTOOLCHAIN=local. The patch
+# version is pinned explicitly: govulncheck flags stdlib CVEs (GO-2026-6218,
+# GO-2026-6090) that are only fixed in go1.26.6.
 name: CI
 
 on:
@@ -27,7 +29,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go: ["1.26"]
+        go: ["1.26.6"]
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -79,7 +81,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
-          go-version: "1.26"
+          go-version: "1.26.6"
           cache: true
 
       - name: Run fuzz target (${{ matrix.target }})
@@ -91,7 +93,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go: ["1.26"]
+        go: ["1.26.6"]
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4

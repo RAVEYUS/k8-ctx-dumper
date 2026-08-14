@@ -49,8 +49,8 @@ func NewClient(kubeconfigPath, contextName string) (*kubernetes.Clientset, *rest
 		restCfg, err = rest.InClusterConfig()
 		if err != nil {
 			return nil, nil, fmt.Errorf(
-				"no kubeconfig found (%w) and in-cluster config unavailable (%w); "+
-					"set --kubeconfig or the KUBECONFIG environment variable", outOfClusterErr(err), err)
+				"no kubeconfig found (out-of-cluster config: %v) and in-cluster config unavailable (%w); "+
+					"set --kubeconfig or the KUBECONFIG environment variable", err, err)
 		}
 	}
 
@@ -90,10 +90,4 @@ func outOfClusterConfig(cfg *clientConfig) (*rest.Config, error) {
 	}
 
 	return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, overrides).ClientConfig()
-}
-
-// outOfClusterErr unwraps the error into a stable message for the combined
-// error string in NewClient.
-func outOfClusterErr(err error) error {
-	return fmt.Errorf("out-of-cluster config: %v", err)
 }
