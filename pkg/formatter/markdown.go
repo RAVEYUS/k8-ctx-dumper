@@ -197,10 +197,10 @@ func renderEvent(b *strings.Builder, e corev1.Event, s *k8s.ClusterSnapshot) {
 	var line string
 	if e.Count > 1 {
 		line = fmt.Sprintf("- [%s] %s (%dx, %s ago): %s on %s %s",
-			e.Type, e.Reason, e.Count, age, e.Message, kind, obj)
+			md(e.Type), md(e.Reason), e.Count, age, md(e.Message), md(kind), md(obj))
 	} else {
 		line = fmt.Sprintf("- [%s] %s (%s ago): %s on %s %s",
-			e.Type, e.Reason, age, e.Message, kind, obj)
+			md(e.Type), md(e.Reason), age, md(e.Message), md(kind), md(obj))
 	}
 	b.WriteString(line + "\n")
 }
