@@ -218,3 +218,42 @@ func TestImageTail(t *testing.T) {
 		}
 	}
 }
+
+// TestMarkdownEventMessageEscaped verifies that multi-line event messages and
+// pipe characters cannot break the Markdown structure: each event stays a
+// single list item.
+func TestMarkdownEventMessageEscaped(t *testing.T) {
+	s := &k8s.ClusterSnapshot{
+		Context:   "prod-cluster",
+		Namespace: "default",
+		Events: []corev1.Event{
+			{
+				ObjectMeta:     metav1.ObjectMeta{Name: "e1", Namespace: "default"},
+				Type:           "Warning",
+				Reason:         "FailedScheduling",
+				Message:        "0/3 nodes are available:\n2 Insufficient cpu.\npreemption: not capable",
+				Count:          4,
+				LastTimestamp:  metav1.NewTime(time.Now().Add(-5 * time.Minute)),
+				InvolvedObject: corev1.ObjectReference{Kind: "Pod", Namespace: "default", Name: "web|x"},
+			},
+		},
+	}
+	out, err := (MarkdownFormatter{}).Format(s)
+	if err != nil {
+		t.Fatalf("Format: %v", err)
+	}
+
+	events := strings.SplitN(out, "## Recent Events / Errors\n", 2)
+	if len(events) != 2 {
+		t.Fatalf("events section missing:\n%s", out)
+	}
+	lines := strings.Split(strings.TrimRight(events[1], "\n"), "\n")
+	if len(lines) != 1 {
+		t.Errorf("multi-line event message broke the list structure, got %d lines:\n%s", len(lines), out)
+	}
+	for _, want := range []string{"nodes are available: 2 Insufficient cpu.", "on Pod web\\|x"} {
+		if !strings.Contains(out, want) {
+			t.Errorf("markdown output missing %q\n---\n%s", want, out)
+		}
+	}
+}
