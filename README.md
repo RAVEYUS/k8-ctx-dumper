@@ -137,19 +137,6 @@ k8s-ctx-dumper/
 
 Apache License 2.0
 
-## Development & CI
-
-- **AI reviews**: [CodeRabbit](https://www.coderabbit.ai/) (free tier) reviews
-  every pull request with inline comments, a summary, and Go tooling
-  (golangci-lint, gitleaks, actionlint, zizmor).
-- CI runs on every push/PR: `gofmt`, `go vet`, `go test -race`, and a
-  version-stamped build on Go 1.26.
-- [OpenSSF Scorecard](https://securityscorecards.dev/) runs weekly to assess
-  supply-chain security; results are published to the security dashboard.
-- Tag a release with `git tag v1.0.0 && git push origin v1.0.0` to trigger the
-  release workflow, which cross-compiles the binary for Linux, macOS, and
-  Windows (amd64/arm64), attaches them to a draft GitHub Release, **and
-  publishes a multi-arch Docker image to Docker Hub**.
 - Docker Hub publishing requires the `DOCKERHUB_USERNAME` and
   `DOCKERHUB_TOKEN` repository secrets to be configured in
   [repo settings](https://github.com/RAVEYUS/k8-ctx-dumper/settings/secrets/actions).
